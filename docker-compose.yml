@@ -1,0 +1,53 @@
+version: "3"
+
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+    command: >
+      sh -c "
+      python manage.py wait_for_db &&
+      python manage.py migrate && 
+      python manage.py runserver 0.0.0.0:8000
+      "
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+      - maildev
+
+  db:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  celery:
+    build:
+      context: .
+    command: celery -A jointoit worker --loglevel=info
+    volumes:
+      - ./:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+
+  maildev:
+    image: maildev/maildev:latest
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+

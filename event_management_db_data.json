@@ -1,0 +1,146 @@
+[
+  {
+    "model": "user.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$RJeZSW4X6gH2jcW422Ougw$1AodbTDvtKwYiLu+kAxfr7lGN0VZLA6ju8pWvJ0T5Ds=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "alice@example.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-07-05T10:00:00Z",
+      "first_name": "Alice",
+      "last_name": "Smith",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$jGzb0NQThT92LFZZ2xv3zG$WxW2bL//EX9o7lR4ef2lk4e+7lIzyKl6fGGAmaaokPM=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "bob@example.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-07-05T10:05:00Z",
+      "first_name": "Bob",
+      "last_name": "Brown",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 3,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$Dp1SoUdicADU0n0eHZ8UN5$RnW46gt1P/JQrv9ZQSUWRK1jZK43ahGhniRxSMv5+I4=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "carol@example.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-07-05T10:10:00Z",
+      "first_name": "Carol",
+      "last_name": "Davis",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "event_management.event",
+    "pk": 1,
+    "fields": {
+      "title": "Django Workshop",
+      "description": "A workshop on Django basics.",
+      "date": "2025-07-20T14:00:00Z",
+      "location": "Room 101",
+      "organizer": 1
+    }
+  },
+  {
+    "model": "event_management.event",
+    "pk": 2,
+    "fields": {
+      "title": "Python Meetup",
+      "description": "Monthly Python meetup.",
+      "date": "2025-07-21T18:00:00Z",
+      "location": "Main Hall",
+      "organizer": 2
+    }
+  },
+  {
+    "model": "event_management.event",
+    "pk": 3,
+    "fields": {
+      "title": "AI Conference",
+      "description": "Annual AI conference.",
+      "date": "2025-07-22T09:00:00Z",
+      "location": "Conference Center",
+      "organizer": 3
+    }
+  },
+  {
+    "model": "event_management.eventregistration",
+    "pk": 1,
+    "fields": {
+      "event": 1,
+      "user": 1,
+      "registered_at": "2025-07-20T14:00:00Z",
+      "status": "confirmed"
+    }
+  },
+  {
+    "model": "event_management.eventregistration",
+    "pk": 2,
+    "fields": {
+      "event": 1,
+      "user": 2,
+      "registered_at": "2025-07-20T14:00:00Z",
+      "status": "pending"
+    }
+  },
+  {
+    "model": "event_management.eventregistration",
+    "pk": 3,
+    "fields": {
+      "event": 2,
+      "user": 2,
+      "registered_at": "2025-07-21T18:00:00Z",
+      "status": "confirmed"
+    }
+  },
+  {
+    "model": "event_management.eventregistration",
+    "pk": 4,
+    "fields": {
+      "event": 2,
+      "user": 3,
+      "registered_at": "2025-07-21T18:00:00Z",
+      "status": "pending"
+    }
+  },
+  {
+    "model": "event_management.eventregistration",
+    "pk": 5,
+    "fields": {
+      "event": 3,
+      "user": 1,
+      "registered_at": "2025-07-22T09:00:00Z",
+      "status": "pending"
+    }
+  },
+  {
+    "model": "event_management.eventregistration",
+    "pk": 6,
+    "fields": {
+      "event": 3,
+      "user": 3,
+      "registered_at": "2025-07-22T09:00:00Z",
+      "status": "confirmed"
+    }
+  }
+]
