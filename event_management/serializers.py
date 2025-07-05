@@ -42,14 +42,6 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
     user_email = serializers.EmailField(source="user.email", read_only=True)
     event_title = serializers.CharField(source="event.title", read_only=True)
     event_date = serializers.DateTimeField(source="event.date", read_only=True)
-    user = serializers.PrimaryKeyRelatedField(
-        write_only=True,
-        queryset=EventRegistration._meta.get_field("user").related_model.objects.all(),
-    )
-    event = serializers.PrimaryKeyRelatedField(
-        write_only=True,
-        queryset=EventRegistration._meta.get_field("event").related_model.objects.all(),
-    )
 
     class Meta:
         model = EventRegistration
@@ -59,8 +51,6 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
             "event_title",
             "event_date",
             "registered_at",
-            "user",
-            "event",
             "status",
         ]
 
