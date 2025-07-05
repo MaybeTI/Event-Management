@@ -7,10 +7,11 @@ The Event Management API is a Django-based backend application designed to manag
 - **Event Management**: Create, update, delete, and list events.
 - **User Management**: Register users and authenticate them using JWT tokens.
 - **Event Registration**: Allow users to register for events and receive email notifications.
-- **Email Notifications**: Automatically send confirmation emails upon successful event registration.
+- **Email Notifications**: Automatically send confirmation emails upon successful event registration or status updates.
 - **API Documentation**: Interactive API documentation generated with Swagger (via `drf-spectacular`).
-- **Search and Filtering**: Search and filter events based on various criteria.
+- **Search and Filtering**: Search and filter events based on title, location, organizer ID, or flexible date formats (year, month, or exact date).
 - **Task Queue**: Asynchronous email notifications using Celery and Redis.
+- **Permission Checks**: Ensure only event organizers can update or delete their events.
 
 ## Technologies Used
 - **Backend Framework**: Django and Django REST Framework
@@ -101,23 +102,34 @@ Response:
 
 ## API Endpoints
 - **Events**:
-  - `GET /events/`: List all events
-  - `POST /events/`: Create a new event (admin only)
-  - `GET /events/{id}/`: Retrieve event details
-  - `PUT /events/{id}/`: Update an event (admin only)
-  - `DELETE /events/{id}/`: Delete an event (admin only)
+  - `GET /events/`: List all events with optional filters:
+    - `title`: Partial match for event title.
+    - `date`: Filter by year (`YYYY`), year and month (`YYYY-MM`), or exact date (`YYYY-MM-DD`).
+    - `location`: Partial match for event location.
+    - `organizer`: Filter by organizer ID (exact match).
+  - `POST /events/`: Create a new event (authenticated users only).
+  - `GET /events/{id}/`: Retrieve event details.
+  - `PUT /events/{id}/`: Update an event (only the organizer can update).
+  - `PATCH /events/{id}/`: Partially update an event (only the organizer can update).
+  - `DELETE /events/{id}/`: Delete an event (only the organizer can delete).
 
 - **Event Registration**:
-  - `POST /events/{id}/register/`: Register for an event
-  - `GET /registrations/`: List user registrations
+  - `POST /events/{id}/register/`: Register for an event.
+  - `GET /registrations/`: List user registrations.
+  - `GET /registrations/{id}/`: Retrieve a registration by ID.
+  - `PUT /registrations/{id}/`: Update a registration by ID.
+  - `PATCH /registrations/{id}/`: Partially update a registration by ID.
+  - `DELETE /registrations/{id}/`: Cancel a registration (only the organizer can delete).
 
 - **User Management**:
-  - `POST /users/register/`: Register a new user
-  - `POST /api/token/`: Obtain JWT token
+  - `POST /users/register/`: Register a new user.
+  - `POST /api/token/`: Obtain JWT token.
+  - `GET /users/me/`: Retrieve details of the authenticated user.
+  - `PUT /users/me/`: Update the authenticated user's details.
+  - `PATCH /users/me/`: Partially update the authenticated user's details.
 
 ## Bonus Features
 - **Custom User Model**: Extend Django's default user model for flexibility.
 - **Asynchronous Tasks**: Use Celery to handle background tasks like sending emails.
 - **Email Testing**: Use MailDev to capture and test emails locally.
 - **Rate Limiting**: Protect the API with throttling for anonymous and authenticated users.
-- 
