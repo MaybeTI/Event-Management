@@ -63,9 +63,9 @@ class EventViewSet(viewsets.ModelViewSet):
             ),
             OpenApiParameter(
                 name="organizer",
-                description="Filter by organizer email (partial match)",
+                description="Filter by organizer ID (exact match)",
                 required=False,
-                type=str,
+                type=int,
             ),
         ]
     )
@@ -76,7 +76,7 @@ class EventViewSet(viewsets.ModelViewSet):
         title = self.request.query_params.get("title", None)
         date_str = self.request.query_params.get("date", None)
         location = self.request.query_params.get("location", None)
-        organizer = self.request.query_params.get("organizer", None)
+        organizer_id = self.request.query_params.get("organizer", None)
 
         queryset = Event.objects.all()
 
@@ -101,9 +101,8 @@ class EventViewSet(viewsets.ModelViewSet):
         if location:
             queryset = queryset.filter(location__icontains=location)
 
-        if organizer:
-            queryset = queryset.select_related("organizer")
-            queryset = queryset.filter(organizer__email__icontains=organizer)
+        if organizer_id:
+            queryset = queryset.filter(organizer_id=organizer_id)
 
         return queryset
 
