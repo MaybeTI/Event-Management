@@ -112,7 +112,7 @@ Response:
   - `GET /registrations/`: List user registrations
 
 - **User Management**:
-  - `POST /users/`: Register a new user
+  - `POST /users/register/`: Register a new user
   - `POST /api/token/`: Obtain JWT token
 
 ## Bonus Features
