@@ -13,6 +13,16 @@ def send_event_registration_email(
     event_id: int,
     status: Literal["pending", "confirmed", "cancelled"] = "confirmed",
 ) -> None:
+    """
+    Send an email notification to the user about their event registration status.
+
+    Parameters:
+        user_id (int): The ID of the user to notify.
+        event_id (int): The ID of the event.
+        status (Literal["pending", "confirmed", "cancelled"], optional):
+            The registration status. The email content will vary depending on the status.
+            Defaults to "confirmed".
+    """
     user = get_user_model().objects.get(pk=user_id)
     event = Event.objects.get(pk=event_id)
 
