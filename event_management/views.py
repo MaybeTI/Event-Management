@@ -84,22 +84,18 @@ class EventViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(title__icontains=title)
 
         if date_str:
-            try:
-                if len(date_str) == 4:
-                    queryset = queryset.filter(date__year=int(date_str))
+            if len(date_str) == 4:
+                queryset = queryset.filter(date__year=int(date_str))
 
-                elif len(date_str) == 7:
-                    year, month = map(int, date_str.split("-"))
-                    queryset = queryset.filter(date__year=year, date__month=month)
+            elif len(date_str) == 7:
+                year, month = map(int, date_str.split("-"))
+                queryset = queryset.filter(date__year=year, date__month=month)
 
-                elif len(date_str) == 10:
-                    date = datetime.strptime(date_str, "%Y-%m-%d").date()
-                    queryset = queryset.filter(date__date=date)
+            elif len(date_str) == 10:
+                date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                queryset = queryset.filter(date__date=date)
 
-                else:
-                    raise ValueError
-
-            except ValueError:
+            else:
                 raise ValueError("Invalid date format. Use YYYY, YYYY-MM, or YYYY-MM-DD.")
 
         if location:
