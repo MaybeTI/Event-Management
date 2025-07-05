@@ -127,6 +127,12 @@ class EventViewSet(viewsets.ModelViewSet):
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.organizer != request.user:
+            raise PermissionDenied("Only the organizer can update this event.")
+        return super().update(request, *args, **kwargs)
+
     def perform_destroy(self, instance):
         if instance.organizer != self.request.user:
             raise PermissionDenied("Only the organizer can delete this event.")
