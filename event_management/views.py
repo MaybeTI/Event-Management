@@ -50,7 +50,8 @@ class EventViewSet(viewsets.ModelViewSet):
             ),
             OpenApiParameter(
                 name="date",
-                description="Filter by exact date (YYYY-MM-DD)",
+                description="Filter by year (YYYY), year and month (YYYY-MM), "
+                            "or exact date (YYYY-MM-DD)",
                 required=False,
                 type=str,
             ),
@@ -83,8 +84,23 @@ class EventViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(title__icontains=title)
 
         if date_str:
-            date = datetime.strptime(date_str, "%Y-%m-%d").date()
-            queryset = queryset.filter(date__startswith=date)
+            try:
+                if len(date_str) == 4:
+                    queryset = queryset.filter(date__year=int(date_str))
+
+                elif len(date_str) == 7:
+                    year, month = map(int, date_str.split("-"))
+                    queryset = queryset.filter(date__year=year, date__month=month)
+
+                elif len(date_str) == 10:
+                    date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                    queryset = queryset.filter(date__date=date)
+
+                else:
+                    raise ValueError
+
+            except ValueError:
+                raise ValueError("Invalid date format. Use YYYY, YYYY-MM, or YYYY-MM-DD.")
 
         if location:
             queryset = queryset.filter(location__icontains=location)
@@ -104,7 +120,7 @@ class EventViewSet(viewsets.ModelViewSet):
             if user_id != self.request.user.id:
                 user_qs = get_user_model().objects.filter(pk=user_id)
                 if user := user_qs.first():
-                    get_or_create_event_registration(event, cast(User, user), "pending")
+                    get_or_create_event_registration(event, cast(User, user), EventRegistration.Status.PENDING)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
