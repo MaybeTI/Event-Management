@@ -104,7 +104,7 @@ class EventViewSet(viewsets.ModelViewSet):
             if user_id != self.request.user.id:
                 user_qs = get_user_model().objects.filter(pk=user_id)
                 if user := user_qs.first():
-                    get_or_create_event_registration(event, cast(User, user), "pending")
+                    get_or_create_event_registration(event, cast(User, user), EventRegistration.Status.PENDING)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

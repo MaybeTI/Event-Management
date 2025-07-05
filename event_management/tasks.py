@@ -1,18 +1,12 @@
-from typing import Literal
-
 from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 
-from .models import Event
+from .models import Event, EventRegistration
 
 
 @shared_task
-def send_event_registration_email(
-    user_id: int,
-    event_id: int,
-    status: Literal["pending", "confirmed", "cancelled"] = "confirmed",
-) -> None:
+def send_event_registration_email(user_id: int, event_id: int) -> None:
     """
     Send an email notification to the user about their event registration status.
 
@@ -25,29 +19,34 @@ def send_event_registration_email(
     """
     user = get_user_model().objects.get(pk=user_id)
     event = Event.objects.get(pk=event_id)
+    registration = EventRegistration.objects.get(user_id=user_id, event_id=event_id)
+    status = registration.status
 
-    if status == "confirmed":
-        subject = f"Registration Confirmed: {event.title}"
-        message = (
+    email_content = {
+        EventRegistration.Status.CONFIRMED: (
+            f"Registration Confirmed: {event.title}",
             f"Hi {user.email},\n\n"
             f"Your registration for the event '{event.title}' "
             f"on {event.date.strftime('%Y-%m-%d %H:%M')} has been confirmed."
-        )
-    elif status == "cancelled":
-        subject = f"Registration Cancelled: {event.title}"
-        message = (
+        ),
+        EventRegistration.Status.CANCELLED: (
+            f"Registration Cancelled: {event.title}",
             f"Hi {user.email},\n\n"
             f"Your registration for the event '{event.title}' "
             f"on {event.date.strftime('%Y-%m-%d %H:%M')} has been cancelled."
-        )
-    else:
-        subject = f"Invitation to Event: {event.title}"
-        message = (
+        ),
+    }
+
+    subject, message = email_content.get(
+        EventRegistration.Status(status),
+        (
+            f"Invitation to Event: {event.title}",
             f"Hi {user.email},\n\n"
             f"You have been invited to the event '{event.title}' "
             f"scheduled for {event.date.strftime('%Y-%m-%d %H:%M')}. "
             f"Please confirm your participation."
-        )
+        ),
+    )
 
     send_mail(
         subject=subject,
