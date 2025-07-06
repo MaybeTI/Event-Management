@@ -3,9 +3,7 @@ from typing import cast
 
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
-from drf_spectacular.utils import (
-    OpenApiParameter, extend_schema, extend_schema_view
-)
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import permissions, status, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -15,7 +13,9 @@ from user.models import User
 
 from .models import Event, EventRegistration
 from .serializers import EventRegistrationSerializer, EventSerializer
+from .tasks import send_event_date_change_email
 from .utils import get_or_create_event_registration
+from .tasks import send_event_date_change_email
 
 
 @extend_schema_view(
@@ -27,13 +27,9 @@ from .utils import get_or_create_event_registration
             "Create a new event and optionally invite users by providing their IDs in the 'invited_users' field."
         )
     ),
-    retrieve=extend_schema(
-        description="Retrieve details of a specific event by its ID."
-    ),
+    retrieve=extend_schema(description="Retrieve details of a specific event by its ID."),
     update=extend_schema(description="Update an existing event by its ID."),
-    partial_update=extend_schema(
-        description="Partially update an existing event by its ID."
-    ),
+    partial_update=extend_schema(description="Partially update an existing event by its ID."),
     destroy=extend_schema(description="Delete an event by its ID."),
 )
 class EventViewSet(viewsets.ModelViewSet):
@@ -50,8 +46,7 @@ class EventViewSet(viewsets.ModelViewSet):
             ),
             OpenApiParameter(
                 name="date",
-                description="Filter by year (YYYY), year and month (YYYY-MM), "
-                            "or exact date (YYYY-MM-DD)",
+                description="Filter by year (YYYY), year and month (YYYY-MM), " "or exact date (YYYY-MM-DD)",
                 required=False,
                 type=str,
             ),
@@ -121,16 +116,27 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
         return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            serializer.data, status=status.HTTP_201_CREATED, headers=self.get_success_headers(serializer.data)
         )
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance.organizer != request.user:
             raise PermissionDenied("Only the organizer can update this event.")
-        return super().update(request, *args, **kwargs)
+
+        old_date = instance.date
+        response = super().update(request, *args, **kwargs)
+        new_date = self.get_object().date
+
+        if old_date != new_date:
+            send_event_date_change_email.delay(
+                event_id=instance.id,
+                old_date=old_date.strftime("%Y-%m-%d %H:%M"),
+                new_date=new_date.strftime("%Y-%m-%d %H:%M"),
+            )
+
+        return response
 
     def perform_destroy(self, instance):
         if instance.organizer != self.request.user:
@@ -139,19 +145,11 @@ class EventViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    list=extend_schema(
-        description="Retrieve a list of event registrations for the authenticated user."
-    ),
+    list=extend_schema(description="Retrieve a list of event registrations for the authenticated user."),
     create=extend_schema(description="Register the authenticated user for an event."),
-    retrieve=extend_schema(
-        description="Retrieve details of a specific event registration by its ID."
-    ),
-    update=extend_schema(
-        description="Update an existing event registration by its ID."
-    ),
-    partial_update=extend_schema(
-        description="Partially update an existing event registration by its ID."
-    ),
+    retrieve=extend_schema(description="Retrieve details of a specific event registration by its ID."),
+    update=extend_schema(description="Update an existing event registration by its ID."),
+    partial_update=extend_schema(description="Partially update an existing event registration by its ID."),
     destroy=extend_schema(description="Cancel an event registration by its ID."),
 )
 class EventRegisterViewSet(viewsets.ModelViewSet):
@@ -159,6 +157,4 @@ class EventRegisterViewSet(viewsets.ModelViewSet):
     serializer_class = EventRegistrationSerializer
 
     def get_queryset(self):
-        return EventRegistration.objects.filter(user=self.request.user).select_related(
-            "event", "user"
-        )
+        return EventRegistration.objects.filter(user=self.request.user).select_related("event", "user")

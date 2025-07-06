@@ -7,9 +7,7 @@ class Event(models.Model):
     description = models.TextField()
     date = models.DateTimeField()
     location = models.CharField(max_length=255)
-    organizer = models.ForeignKey(
-        get_user_model(), on_delete=models.CASCADE, related_name="organized_events"
-    )
+    organizer = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="organized_events")
 
     class Meta:
         ordering = ["date"]
@@ -24,14 +22,10 @@ class EventRegistration(models.Model):
         CONFIRMED = "confirmed", "Confirmed"
         CANCELLED = "cancelled", "Cancelled"
 
-    event = models.ForeignKey(
-        Event, on_delete=models.CASCADE, related_name="registrations"
-    )
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="registrations")
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     registered_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(
-        max_length=20, choices=Status.choices, default=Status.PENDING
-    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
 
     class Meta:
         unique_together = ("event", "user")
