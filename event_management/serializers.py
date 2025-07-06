@@ -1,5 +1,6 @@
 from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from .models import Event, EventRegistration
 from .tasks import send_event_registration_email
@@ -26,6 +27,7 @@ class EventSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["organizer"]
 
+
     def validate_date(self, value):
         if value < timezone.now():
             raise serializers.ValidationError("The event date cannot be in the past.")
@@ -40,24 +42,21 @@ class EventSerializer(serializers.ModelSerializer):
 
 class EventRegistrationSerializer(serializers.ModelSerializer):
     user_email = serializers.EmailField(source="user.email", read_only=True)
-    event_title = serializers.CharField(source="event.title", read_only=True)
-    event_date = serializers.DateTimeField(source="event.date", read_only=True)
 
     class Meta:
         model = EventRegistration
         fields = [
             "id",
             "user_email",
-            "event_title",
-            "event_date",
+            "event",
             "registered_at",
             "status",
         ]
 
     def create(self, validated_data):
-        registration = super().create(validated_data)
-        send_event_registration_email.delay(user_id=registration.user.id, event_id=registration.event.id)
-        return registration
+        instance = super().create(validated_data)
+        send_event_registration_email.delay(user_id=instance.user.id, event_id=instance.event.id)
+        return instance
 
     def update(self, instance, validated_data):
         registration = super().update(instance, validated_data)
