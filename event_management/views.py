@@ -13,7 +13,7 @@ from user.models import User
 
 from .models import Event, EventRegistration
 from .serializers import EventRegistrationSerializer, EventSerializer
-from .tasks import send_event_date_change_email, send_event_cancellation_email
+from .tasks import send_event_cancellation_email, send_event_date_change_email
 from .utils import get_or_create_event_registration
 
 
@@ -164,5 +164,25 @@ class EventRegisterViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = EventRegistrationSerializer
 
+    @staticmethod
+    def validate_event_id(instance, request):
+        if "event" in request.data and request.data["event"] != instance.event.id:
+            return Response(
+                {"detail": "You cannot change the event_id."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return None
+
     def get_queryset(self):
         return EventRegistration.objects.filter(user=self.request.user).select_related("event", "user")
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        return self.validate_event_id(instance, request) or super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        return self.validate_event_id(instance, request) or super().partial_update(request, *args, **kwargs)
