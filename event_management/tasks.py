@@ -78,21 +78,20 @@ def send_event_date_change_email(event_id: int, old_date: str, new_date: str) ->
 
 
 @shared_task
-def send_event_cancellation_email(event_id: int) -> None:
+def send_event_cancellation_email(event_title: str, event_date: str, participant_emails: list) -> None:
     """
-    Send an email notification to all participants (including the organizer)
-    about the cancellation of an event.
+    Send an email notification to all participants about the cancellation of an event.
 
     Parameters:
-        event_id (int): The ID of the event being canceled.
+        event_title (str): The title of the event being canceled.
+        event_date (str): The date of the event being canceled.
+        participant_emails (list): A list of email addresses of participants.
     """
-    event = Event.objects.prefetch_related("registrations__user").get(pk=event_id)
-
-    subject = f"Event Cancelled: {event.title}"
+    subject = f"Event Cancelled: {event_title}"
     message = (
         f"Hello,\n\n"
-        f"We regret to inform you that the event '{event.title}' scheduled for "
-        f"{event.date.strftime('%Y-%m-%d %H:%M')} has been cancelled.\n\n"
+        f"We regret to inform you that the event '{event_title}' scheduled for "
+        f"{event_date} has been cancelled.\n\n"
         f"Thank you for your understanding."
     )
 
@@ -100,5 +99,5 @@ def send_event_cancellation_email(event_id: int) -> None:
         subject=subject,
         message=message,
         from_email="noreply@gmail.com",
-        recipient_list=[reg.user.email for reg in event.registrations.all()],
+        recipient_list=participant_emails,
     )

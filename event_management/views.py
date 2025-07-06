@@ -141,7 +141,13 @@ class EventViewSet(viewsets.ModelViewSet):
         if instance.organizer != self.request.user:
             raise PermissionDenied("Only the organizer can delete this event.")
 
-        send_event_cancellation_email.delay(event_id=instance.id)
+        send_event_cancellation_email.delay(
+            event_title=instance.title,
+            event_date=instance.date.strftime("%Y-%m-%d %H:%M"),
+            participant_emails=list(
+                instance.registrations.select_related("user").values_list("user__email", flat=True)
+            ),
+        )
 
         instance.delete()
 
