@@ -14,4 +14,4 @@ def get_or_create_event_registration(
     """
     registration, created = EventRegistration.objects.get_or_create(event=event, user=user, defaults={"status": status})
     if created:
-        send_event_registration_email.delay(user.id, event.id)
+        send_event_registration_email.delay(user_id=user.id, event_id=event.id)

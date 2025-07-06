@@ -56,11 +56,11 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         registration = super().create(validated_data)
-        send_event_registration_email.delay(registration.user.id, registration.event.id)
+        send_event_registration_email.delay(user_id=registration.user.id, event_id=registration.event.id)
         return registration
 
     def update(self, instance, validated_data):
         registration = super().update(instance, validated_data)
         if "status" in validated_data:
-            send_event_registration_email.delay(registration.user.id, registration.event.id)
+            send_event_registration_email.delay(user_id=registration.user.id, event_id=registration.event.id)
         return registration

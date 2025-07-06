@@ -13,9 +13,8 @@ from user.models import User
 
 from .models import Event, EventRegistration
 from .serializers import EventRegistrationSerializer, EventSerializer
-from .tasks import send_event_date_change_email
+from .tasks import send_event_date_change_email, send_event_cancellation_email
 from .utils import get_or_create_event_registration
-from .tasks import send_event_date_change_email
 
 
 @extend_schema_view(
@@ -141,6 +140,9 @@ class EventViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         if instance.organizer != self.request.user:
             raise PermissionDenied("Only the organizer can delete this event.")
+
+        send_event_cancellation_email.delay(event_id=instance.id)
+
         instance.delete()
 
 
